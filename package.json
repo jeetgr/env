@@ -1,0 +1,61 @@
+{
+  "name": "@jeetgr/env",
+  "version": "0.0.1",
+  "description": "Synchronous environment variable parser using @standard-schema/spec",
+  "keywords": [
+    "env",
+    "schema",
+    "validation",
+    "typescript",
+    "standard-schema"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeetgr/env.git"
+  },
+  "author": "Jeet Gangwar",
+  "bugs": {
+    "url": "https://github.com/jeetgr/env/issues"
+  },
+  "homepage": "https://github.com/jeetgr/env#readme",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.5.0",
+    "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.0.0"
+  }
+}
