@@ -64,3 +64,9 @@ const env = parseEnv({
 console.log(env('PORT'))         // => 8080
 console.log(env('DATABASE_URL')) // => postgres://localhost/db
 ```
+
+---
+
+## 📄 License
+
+MIT © [Jeet Gangwar](https://github.com/jeetgr)
