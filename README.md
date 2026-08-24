@@ -1,19 +1,21 @@
 # @jeetgr/env
 
-A tiny utility to **synchronously parse and validate environment variables** using a [Standard Schema](https://github.com/standard-schema/standard-schema)-compatible schema.
+A tiny utility to **create a typed, validated env object** by validating environment variables with a [Standard Schema](https://github.com/standard-schema/standard-schema)-compatible schema.
+
+Works the same in **Node** and in **Vite** (and similar bundlers). You always pass the env bag — this package never reads `process.env` itself, so bundlers cannot inline or leak secrets.
 
 ---
 
-## 🚀 Features
+## Features
 
-- ✅ Validates `process.env` or a custom source
-- ✅ Works with any schema compatible with [`@standard-schema/spec`](https://github.com/standard-schema/standard-schema)
-- ✅ Synchronous-only validation (fails fast if async)
-- ✅ Returns a fully typed accessor function to read validated environment variables
+- Validates `process.env`, `import.meta.env`, or any custom env bag
+- Works with any schema compatible with [`@standard-schema/spec`](https://github.com/standard-schema/standard-schema)
+- Returns a fully typed, frozen object of validated values
+- Throws `EnvValidationError` (with `.issues`) on validation failure
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 # npm
@@ -31,42 +33,60 @@ bun add @jeetgr/env
 
 ---
 
-## 🧪 Example
+## Usage
 
-This example uses [Zod](https://zod.dev), but you can use **any validation library** that supports `@standard-schema/spec`.
+This example uses [Zod](https://zod.dev), but you can use **any** Standard Schema library.
+
+### Node
 
 ```ts
-import { parseEnv } from '@jeetgr/env'
-import * as z from 'zod'
+import { createEnv } from "@jeetgr/env";
+import * as z from "zod";
 
 const schema = z.object({
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string(),
-})
+});
 
-const env = parseEnv({ schema })
+const env = createEnv({ schema, env: process.env });
 
-console.log(env('PORT'))         // => 3000 (or value from process.env)
-console.log(env('DATABASE_URL')) // => value from process.env
+console.log(env.PORT);
+console.log(env.DATABASE_URL);
 ```
 
-You can also pass a custom source (e.g. for testing):
+### Vite (and similar bundlers)
+
+Pass `import.meta.env`. Client-side Vite only exposes variables prefixed with `VITE_`.
 
 ```ts
-const env = parseEnv({
-  schema,
-  source: {
-    PORT: '8080',
-    DATABASE_URL: 'postgres://localhost/db',
-  },
-})
+import { createEnv } from "@jeetgr/env";
+import * as z from "zod";
 
-console.log(env('PORT'))         // => 8080
-console.log(env('DATABASE_URL')) // => postgres://localhost/db
+const schema = z.object({
+  MODE: z.enum(["development", "production", "test"]),
+  VITE_API_URL: z.url(),
+});
+
+const env = createEnv({ schema, env: import.meta.env });
+
+console.log(env.MODE);
+console.log(env.VITE_API_URL);
+```
+
+### Tests and custom env bags
+
+```ts
+const env = createEnv({
+  schema,
+  env: {
+    PORT: "8080",
+    DATABASE_URL: "postgres://localhost/db",
+  },
+});
 ```
 
 ---
 
-## 📄 License
+## License
 
 MIT © [Jeet Gangwar](https://github.com/jeetgr)
