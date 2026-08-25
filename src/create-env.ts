@@ -14,6 +14,19 @@ type CreateEnvOptions<T extends StandardSchemaV1> = {
 };
 
 /**
+ * The validated, deeply frozen shape `createEnv` returns for a given schema.
+ * Use it to type a function parameter or module boundary elsewhere in your
+ * app without importing the schema itself:
+ *
+ * ```ts
+ * function connect(env: InferEnv<typeof schema>) { ... }
+ * ```
+ */
+type InferEnv<T extends StandardSchemaV1> = DeepReadonly<
+  StandardSchemaV1.InferOutput<T>
+>;
+
+/**
  * Create a typed, validated env object from a Standard Schema.
  *
  * This package is isomorphic: it has no Node or browser globals. You pass
@@ -22,7 +35,7 @@ type CreateEnvOptions<T extends StandardSchemaV1> = {
 const createEnv = <T extends StandardSchemaV1>({
   schema,
   env,
-}: CreateEnvOptions<T>): DeepReadonly<StandardSchemaV1.InferOutput<T>> => {
+}: CreateEnvOptions<T>): InferEnv<T> => {
   const validation = schema["~standard"].validate(env);
 
   if (validation instanceof Promise) {
@@ -38,5 +51,5 @@ const createEnv = <T extends StandardSchemaV1>({
   return deepFreeze(values);
 };
 
-export type { CreateEnvOptions };
+export type { CreateEnvOptions, InferEnv };
 export { createEnv };

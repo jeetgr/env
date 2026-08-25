@@ -93,6 +93,20 @@ const env = createEnv({
 });
 ```
 
+### Typing env elsewhere
+
+`InferEnv<typeof schema>` gives you the same validated, frozen shape `createEnv`
+returns, so other modules can take it as a parameter type without importing the
+schema:
+
+```ts
+import type { InferEnv } from "@jeetgr/env";
+
+function connect(env: InferEnv<typeof schema>) {
+  return createConnection(env.DATABASE_URL);
+}
+```
+
 ### Handling validation errors
 
 `createEnv` throws `EnvValidationError` on failure. It has an `.issues` array (the raw
@@ -102,8 +116,9 @@ and exits:
 
 ```ts
 import { createEnv, EnvValidationError } from "@jeetgr/env";
+import type { InferEnv } from "@jeetgr/env";
 
-let env: ReturnType<typeof createEnv<typeof schema>>;
+let env: InferEnv<typeof schema>;
 
 try {
   env = createEnv({ schema, env: process.env });

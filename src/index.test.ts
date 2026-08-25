@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { createEnv, EnvValidationError } from "./index.js";
+import type { InferEnv } from "./index.js";
 import type { StandardSchemaV1 } from "./standard-schema-spec.js";
 
 const schema = z.object({
   PORT: z.coerce.number(),
   NODE_ENV: z.enum(["development", "production", "test"]),
 });
+
+const readPort = (config: InferEnv<typeof schema>): number => config.PORT;
 
 describe("createEnv (test using zod)", () => {
   it("returns typed values when schema is valid", () => {
@@ -81,6 +84,15 @@ describe("createEnv (test using zod)", () => {
       expect(error.issues.length).toBeGreaterThan(0);
       expect(error.message).toMatch(/PORT|NODE_ENV/);
     }
+  });
+
+  it("InferEnv describes the value createEnv returns", () => {
+    const env = createEnv({
+      schema,
+      env: { PORT: "3000", NODE_ENV: "production" },
+    });
+
+    expect(readPort(env)).toBe(3000);
   });
 
   it("accepts a Vite-like import.meta.env bag (booleans + prefixed strings)", () => {
