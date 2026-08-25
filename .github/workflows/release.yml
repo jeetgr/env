@@ -4,10 +4,10 @@ name: Release
 # CHANGELOG diff, commit and push it to main, then run this workflow
 # (Actions tab -> Release -> Run workflow, or `gh workflow run release.yml`).
 #
-# Publishing has to happen in CI rather than locally so npm can attach
-# provenance: the OIDC token it needs only exists inside a supported
-# CI/CD runner. Requires an `NPM_TOKEN` repo secret (an npm automation
-# token with publish access to @jeetgr/env).
+# Publishes via npm Trusted Publishing (OIDC), no npm token stored anywhere.
+# This also gets us provenance for free, since it's the same OIDC exchange.
+# One-time setup on npmjs.com: package Settings -> Trusted Publisher -> add
+# a GitHub Actions publisher for jeetgr/env, workflow filename "release.yml".
 on:
   workflow_dispatch:
 
@@ -36,9 +36,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
 
+      # Trusted Publishing needs a recent npm CLI; the one bundled with
+      # Node 22 predates it.
+      - run: npm install -g npm@latest
+
       - run: pnpm release
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: git push --follow-tags
