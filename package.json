@@ -1,6 +1,6 @@
 {
   "name": "@jeetgr/env",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Typed env helper for Node and Vite using Standard Schema",
   "keywords": [
     "env",
