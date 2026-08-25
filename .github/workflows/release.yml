@@ -1,0 +1,44 @@
+name: Release
+
+# Manually triggered: run `pnpm changeset version` locally, review the
+# CHANGELOG diff, commit and push it to main, then run this workflow
+# (Actions tab -> Release -> Run workflow, or `gh workflow run release.yml`).
+#
+# Publishing has to happen in CI rather than locally so npm can attach
+# provenance: the OIDC token it needs only exists inside a supported
+# CI/CD runner. Requires an `NPM_TOKEN` repo secret (an npm automation
+# token with publish access to @jeetgr/env).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+
+      - run: pnpm release
+        env:
+          NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: git push --follow-tags
