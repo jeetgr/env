@@ -5,7 +5,8 @@
  * Only plain objects and arrays are recursed into — everything else (`Date`,
  * `RegExp`, `Map`, `Set`, functions, and by extension any other class
  * instance) is left as-is, matching `deepFreeze`'s runtime behavior: freezing
- * those wouldn't actually stop mutation through their methods anyway.
+ * those wouldn't actually stop mutation through their methods anyway. Object
+ * literals and `Object.create(null)` values both count as plain.
  */
 type DeepReadonly<T> = T extends
   | Date
@@ -40,7 +41,9 @@ const deepFreeze = <T>(value: T, seen = new WeakSet()): DeepReadonly<T> => {
   seen.add(value);
 
   const isPlainObjectOrArray =
-    Array.isArray(value) || Object.getPrototypeOf(value) === Object.prototype;
+    Array.isArray(value) ||
+    Object.getPrototypeOf(value) === Object.prototype ||
+    Object.getPrototypeOf(value) === null;
 
   if (isPlainObjectOrArray) {
     for (const key of Reflect.ownKeys(value)) {

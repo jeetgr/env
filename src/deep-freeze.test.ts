@@ -24,6 +24,17 @@ describe("deepFreeze", () => {
     expect(deepFreeze(undefined)).toBeUndefined();
   });
 
+  it("recurses into a null-prototype object", () => {
+    // eslint-disable-next-line typescript/no-unsafe-assignment -- Object.create(null) is untyped by design
+    const base: { flags: { beta: boolean } } = Object.create(null);
+    base.flags = { beta: true };
+
+    const value = deepFreeze(base);
+
+    expect(Object.isFrozen(value)).toBe(true);
+    expect(Object.isFrozen(value.flags)).toBe(true);
+  });
+
   it("freezes a Date at its own level without descending into it", () => {
     const date = new Date("2024-01-01");
     const value = deepFreeze({ startedAt: date });
