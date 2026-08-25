@@ -55,7 +55,8 @@
     "test:watch": "vitest",
     "publint": "publint",
     "attw": "attw --pack .",
-    "pack:check": "pnpm build && pnpm publint && pnpm attw",
+    "pack:check": "pnpm build && pnpm publint && pnpm attw && pnpm size",
+    "size": "size-limit",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish",
@@ -64,10 +65,12 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.0",
+    "@size-limit/file": "^13.0.3",
     "oxfmt": "^0.63.0",
     "oxlint": "^1.78.0",
     "oxlint-tsgolint": "^7.0.2001",
     "publint": "^0.3.23",
+    "size-limit": "^13.0.3",
     "tsdown": "^0.22.14",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
@@ -76,6 +79,18 @@
   "peerDependencies": {
     "typescript": "^5 || ^6 || ^7"
   },
+  "size-limit": [
+    {
+      "name": "esm",
+      "path": "dist/index.mjs",
+      "limit": "1.5 KB"
+    },
+    {
+      "name": "cjs",
+      "path": "dist/index.cjs",
+      "limit": "1.5 KB"
+    }
+  ],
   "engines": {
     "node": ">=18"
   },
