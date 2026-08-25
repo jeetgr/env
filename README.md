@@ -17,6 +17,7 @@ You could call `schema.parse(process.env)` yourself. This exists for the two par
 - Works with any schema compatible with [`@standard-schema/spec`](https://github.com/standard-schema/standard-schema)
 - Returns a fully typed, frozen object of validated values
 - Throws `EnvValidationError` (with `.issues`) on validation failure
+- Optionally treats `""` as unset, and can skip validation for build steps
 
 ---
 
@@ -111,6 +112,30 @@ function connect(env: InferEnv<typeof schema>) {
   return createConnection(env.DATABASE_URL);
 }
 ```
+
+### Options
+
+`createEnv` takes two optional flags besides `schema` and `env`, both off by
+default:
+
+```ts
+const env = createEnv({
+  schema,
+  env: process.env,
+
+  // "" is treated as unset, so a schema's .default() or .optional() applies
+  // instead of e.g. z.coerce.number() reading "" as 0.
+  emptyStringAsUndefined: true,
+
+  // Skip validation and return env as-is, cast to the schema's output type.
+  // For build steps where the real runtime env isn't set yet, wire it to an
+  // env var you control rather than leaving it on:
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+});
+```
+
+`skipValidation` returns `env` by reference, unvalidated and **not** frozen, since
+nothing was checked and this package doesn't wrap values it didn't produce itself.
 
 ### Handling validation errors
 

@@ -116,4 +116,57 @@ describe("createEnv (test using zod)", () => {
     expect(env.DEV).toBe(true);
     expect(env.VITE_API_URL).toBe("https://api.example.com");
   });
+
+  it("skipValidation bypasses the schema and returns env by reference", () => {
+    const rawEnv = { PORT: "not-a-number", NODE_ENV: "not-a-real-env" };
+
+    const env = createEnv({ schema, env: rawEnv, skipValidation: true });
+
+    expect(env).toBe(rawEnv);
+    expect(Object.isFrozen(env)).toBe(false);
+  });
+
+  it("emptyStringAsUndefined lets a default apply instead of coercing an empty string to 0", () => {
+    const portSchema = z.object({
+      PORT: z.coerce.number().default(3000),
+      NODE_ENV: z.string(),
+    });
+
+    const withoutOption = createEnv({
+      schema: portSchema,
+      env: { PORT: "", NODE_ENV: "production" },
+    });
+    expect(withoutOption.PORT).toBe(0);
+
+    const withOption = createEnv({
+      schema: portSchema,
+      env: { PORT: "", NODE_ENV: "production" },
+      emptyStringAsUndefined: true,
+    });
+    expect(withOption.PORT).toBe(3000);
+    expect(withOption.NODE_ENV).toBe("production");
+  });
+
+  it("emptyStringAsUndefined turns an empty string into undefined for an optional field", () => {
+    const flagSchema = z.object({ FEATURE_FLAG: z.string().optional() });
+
+    const withoutOption = createEnv({
+      schema: flagSchema,
+      env: { FEATURE_FLAG: "" },
+    });
+    expect(withoutOption.FEATURE_FLAG).toBe("");
+
+    const withOption = createEnv({
+      schema: flagSchema,
+      env: { FEATURE_FLAG: "" },
+      emptyStringAsUndefined: true,
+    });
+    expect(withOption.FEATURE_FLAG).toBeUndefined();
+  });
+
+  it("emptyStringAsUndefined passes a non-object env bag through untouched", () => {
+    expect(() =>
+      createEnv({ schema, env: "not an object", emptyStringAsUndefined: true })
+    ).toThrow(EnvValidationError);
+  });
 });

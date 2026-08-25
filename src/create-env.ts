@@ -11,6 +11,26 @@ type CreateEnvOptions<T extends StandardSchemaV1> = {
    * reads `process.env` itself, so bundlers cannot inline or leak secrets.
    */
   env: unknown;
+  /**
+   * Replace `""` values in the env bag with `undefined` before validating,
+   * so `FOO=""` is treated as `FOO` being unset rather than a present,
+   * empty value. Without this, a platform that leaves a field blank
+   * instead of omitting it (or `z.coerce.number()` reading `""` as `0`)
+   * can silently produce a value your schema's `.default()` or
+   * `.optional()` never gets a chance to apply. Only top-level values are
+   * affected, matching the flat shape of a real env bag. Off by default.
+   */
+  emptyStringAsUndefined?: boolean;
+  /**
+   * Skip validation and return `env` as-is, cast to the schema's output
+   * type without checking it. For build steps (a Docker build stage, for
+   * instance) where the real runtime env isn't available yet but the code
+   * still needs to import without throwing. The returned value is **not**
+   * deeply frozen in this mode, since `env` is returned by reference and
+   * this package never mutates or wraps values it didn't produce itself.
+   * Off by default.
+   */
+  skipValidation?: boolean;
 };
 
 /**
@@ -27,6 +47,25 @@ type InferEnv<T extends StandardSchemaV1> = DeepReadonly<
 >;
 
 /**
+ * Replaces top-level `""` values with `undefined`. The env bag is expected
+ * to be flat, so this deliberately doesn't recurse.
+ */
+const stripEmptyStrings = (env: unknown): unknown => {
+  if (typeof env !== "object" || env === null) {
+    return env;
+  }
+
+  const result: Record<PropertyKey, unknown> = {};
+
+  for (const key of Reflect.ownKeys(env)) {
+    const value = Reflect.get(env, key) as unknown;
+    result[key] = value === "" ? undefined : value;
+  }
+
+  return result;
+};
+
+/**
  * Create a typed, validated env object from a Standard Schema.
  *
  * This package is isomorphic: it has no Node or browser globals. You pass
@@ -35,8 +74,17 @@ type InferEnv<T extends StandardSchemaV1> = DeepReadonly<
 const createEnv = <T extends StandardSchemaV1>({
   schema,
   env,
+  emptyStringAsUndefined = false,
+  skipValidation = false,
 }: CreateEnvOptions<T>): InferEnv<T> => {
-  const validation = schema["~standard"].validate(env);
+  if (skipValidation) {
+    // eslint-disable-next-line typescript/no-unsafe-type-assertion -- caller opted out of validation, so this is a type-level promise only
+    return env as InferEnv<T>;
+  }
+
+  const input = emptyStringAsUndefined ? stripEmptyStrings(env) : env;
+
+  const validation = schema["~standard"].validate(input);
 
   if (validation instanceof Promise) {
     throw new TypeError("Schema validation must be synchronous");
