@@ -16,6 +16,11 @@ const toDotPath = (
     .join(".");
 };
 
+/**
+ * Formats Standard Schema issues as the plain-text list
+ * `EnvValidationError.message` uses: `✖ message` per issue, plus a
+ * `→ at path` line for any issue with a path.
+ */
 const formatEnvIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
   issues
     .map((issue) => {

@@ -5,6 +5,7 @@ import type { StandardSchemaV1 } from "./standard-schema-spec.js";
  * Thrown when env validation fails against the provided Standard Schema.
  */
 class EnvValidationError extends Error {
+  /** The raw Standard Schema issues that failed validation. */
   readonly issues: readonly StandardSchemaV1.Issue[];
 
   constructor(issues: readonly StandardSchemaV1.Issue[]) {

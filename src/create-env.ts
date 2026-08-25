@@ -7,28 +7,22 @@ type CreateEnvOptions<T extends StandardSchemaV1> = {
   schema: T;
   /**
    * Env bag to validate. Pass `process.env` in Node, or `import.meta.env`
-   * in Vite (and similar bundlers). Do not omit this — the library never
-   * reads `process.env` itself, so bundlers cannot inline or leak secrets.
+   * in Vite. Required: this package never reads `process.env` itself, so
+   * bundlers can't inline or leak secrets.
    */
   env: unknown;
   /**
-   * Replace `""` values in the env bag with `undefined` before validating,
-   * so `FOO=""` is treated as `FOO` being unset rather than a present,
-   * empty value. Without this, a platform that leaves a field blank
-   * instead of omitting it (or `z.coerce.number()` reading `""` as `0`)
-   * can silently produce a value your schema's `.default()` or
-   * `.optional()` never gets a chance to apply. Only top-level values are
-   * affected, matching the flat shape of a real env bag. Off by default.
+   * Treat `""` as unset before validating, so `FOO=""` doesn't block a
+   * schema's `.default()`/`.optional()` (or get coerced to `0` by
+   * `z.coerce.number()`). Only top-level values are affected. Default
+   * `false`.
    */
   emptyStringAsUndefined?: boolean;
   /**
    * Skip validation and return `env` as-is, cast to the schema's output
-   * type without checking it. For build steps (a Docker build stage, for
-   * instance) where the real runtime env isn't available yet but the code
-   * still needs to import without throwing. The returned value is **not**
-   * deeply frozen in this mode, since `env` is returned by reference and
-   * this package never mutates or wraps values it didn't produce itself.
-   * Off by default.
+   * type. For build steps (a Docker build, say) where the real env isn't
+   * available yet but the code still needs to import without throwing.
+   * Not frozen: `env` comes back by reference. Default `false`.
    */
   skipValidation?: boolean;
 };
@@ -47,8 +41,8 @@ type InferEnv<T extends StandardSchemaV1> = DeepReadonly<
 >;
 
 /**
- * Replaces top-level `""` values with `undefined`. The env bag is expected
- * to be flat, so this deliberately doesn't recurse.
+ * Replaces top-level `""` values with `undefined`. Env bags are flat, so
+ * this doesn't recurse.
  */
 const stripEmptyStrings = (env: unknown): unknown => {
   if (typeof env !== "object" || env === null) {

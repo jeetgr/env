@@ -1,12 +1,9 @@
 /**
- * Recursively marks every own property readonly, mirroring the runtime
- * deep-freeze performed by {@link deepFreeze}.
- *
- * Only plain objects and arrays are recursed into — everything else (`Date`,
- * `RegExp`, `Map`, `Set`, functions, and by extension any other class
- * instance) is left as-is, matching `deepFreeze`'s runtime behavior: freezing
- * those wouldn't actually stop mutation through their methods anyway. Object
- * literals and `Object.create(null)` values both count as plain.
+ * Type-level mirror of {@link deepFreeze}. Marks every own property
+ * readonly, recursing only into plain objects and arrays (object literals
+ * and `Object.create(null)` both count). `Date`, `RegExp`, `Map`, `Set`,
+ * functions, and other class instances are left as-is, since freezing them
+ * wouldn't stop mutation through their own methods anyway.
  */
 type DeepReadonly<T> = T extends
   | Date
@@ -24,13 +21,12 @@ type DeepReadonly<T> = T extends
       : T;
 
 /**
- * Freezes `value` and, recursively, every plain object/array reachable from
- * it. Non-plain objects (class instances, `Date`, `Map`, ...) are frozen at
- * their own level but not descended into, since `Object.freeze` on those
- * doesn't stop mutation through their methods anyway.
+ * Freezes `value` and every plain object/array reachable from it. Non-plain
+ * values (class instances, `Date`, `Map`, ...) are frozen at their own
+ * level but not descended into.
  *
- * Guards against circular references with a `seen` set, so it's safe to call
- * on arbitrary schema output.
+ * Guards against circular references with a `seen` set, so it's safe to
+ * call on arbitrary schema output.
  */
 const deepFreeze = <T>(value: T, seen = new WeakSet()): DeepReadonly<T> => {
   if (value === null || typeof value !== "object" || seen.has(value)) {
