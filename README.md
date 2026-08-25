@@ -1,5 +1,8 @@
 # @jeetgr/env
 
+[![npm version](https://img.shields.io/npm/v/%40jeetgr%2Fenv)](https://www.npmjs.com/package/@jeetgr/env)
+[![CI](https://github.com/jeetgr/env/actions/workflows/ci.yml/badge.svg)](https://github.com/jeetgr/env/actions/workflows/ci.yml)
+
 A tiny utility to **create a typed, validated env object** by validating environment variables with a [Standard Schema](https://github.com/standard-schema/standard-schema)-compatible schema.
 
 Works the same in **Node** and in **Vite** (and similar bundlers). You always pass the env bag — this package never reads `process.env` itself, so bundlers cannot inline or leak secrets.
@@ -7,6 +10,8 @@ Works the same in **Node** and in **Vite** (and similar bundlers). You always pa
 ---
 
 ## Features
+
+You could call `schema.parse(process.env)` yourself. This exists for the two parts that are easy to skip: freezing the result so validated config can't drift after boot, and taking the env bag as an argument instead of reading a global, so the same code runs in Node and Vite.
 
 - Validates `process.env`, `import.meta.env`, or any custom env bag
 - Works with any schema compatible with [`@standard-schema/spec`](https://github.com/standard-schema/standard-schema)
