@@ -15,6 +15,14 @@ Works the same in **Node** and in **Vite** (and similar bundlers). You always pa
 
 ---
 
+## Non-goals
+
+- No `.env` file loading. Load files with `dotenv` or `dotenv-flow` first, then pass the result in as `env`.
+- No client/server variable splitting. Write two schemas and call `createEnv` twice if you need that.
+- No framework integration or CLI. It's one function.
+
+---
+
 ## Installation
 
 ```bash
