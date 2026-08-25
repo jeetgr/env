@@ -85,6 +85,42 @@ const env = createEnv({
 });
 ```
 
+### Handling validation errors
+
+`createEnv` throws `EnvValidationError` on failure. It has an `.issues` array (the raw
+[Standard Schema](https://github.com/standard-schema/standard-schema) issues) and a
+`.message` that's already formatted for a terminal. A typical app boot just catches it
+and exits:
+
+```ts
+import { createEnv, EnvValidationError } from "@jeetgr/env";
+
+let env: ReturnType<typeof createEnv<typeof schema>>;
+
+try {
+  env = createEnv({ schema, env: process.env });
+} catch (error) {
+  if (error instanceof EnvValidationError) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  throw error;
+}
+```
+
+If you want to render the issues yourself instead, for example as JSON for a log
+pipeline, use `.issues` directly, or `formatEnvIssues` for the same "✖ message / → at
+path" output `.message` uses internally:
+
+```ts
+import { formatEnvIssues } from "@jeetgr/env";
+
+if (error instanceof EnvValidationError) {
+  logger.error({ issues: error.issues }); // structured
+  console.error(formatEnvIssues(error.issues)); // or the same plain-text format
+}
+```
+
 ---
 
 ## License
