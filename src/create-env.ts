@@ -64,6 +64,19 @@ const stripEmptyStrings = (env: unknown): unknown => {
  *
  * This package is isomorphic: it has no Node or browser globals. You pass
  * the env bag, so it works the same in Node, Vite, webpack, and tests.
+ *
+ * @example
+ * ```ts
+ * import { createEnv } from "@jeetgr/env";
+ * import * as z from "zod";
+ *
+ * const env = createEnv({
+ *   schema: z.object({ PORT: z.coerce.number().default(3000) }),
+ *   env: process.env,
+ * });
+ *
+ * env.PORT; // number
+ * ```
  */
 const createEnv = <T extends StandardSchemaV1>({
   schema,
